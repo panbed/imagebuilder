@@ -9,7 +9,7 @@ if [ "$EUID" -ne 0 ]
 fi
 
 IMAGE_SRC=http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
-KERNEL_SRC=https://github.com/linsyking/imagebuilder/releases/download/6.9.7/6.9.7-stb-cbq.tar.gz
+KERNEL_SRC=https://github.com/hexdump0815/linux-mainline-mediatek-mt81xx-kernel/releases/download/6.6.9-stb-mt8%2B/6.6.9-stb-mt8+.tar.gz
 GIT_DIR=/compile/local/imagebuilder
 BUILD_ROOT=/compile/local/imagebuilder-root
 DOWNLOAD_DIR=/compile/local/imagebuilder-download
