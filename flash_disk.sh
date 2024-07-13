@@ -10,7 +10,7 @@ fi
 
 IMAGE_DIR=/compile/local/imagebuilder-diskimage
 IMG=${IMAGE_DIR}/arch.img
-FLASH_DEV=/dev/sda
+FLASH_DEV=/dev/mmcblk0
 
 dd bs=4M if=${IMG} of=${FLASH_DEV} status=progress
 

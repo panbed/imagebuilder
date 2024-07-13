@@ -104,3 +104,116 @@ fi
 # quick swapoff and swapon cycle to make sure the zswap really gets enabled
 #swapoff -a
 #swapon -a
+
+# enable light supend mode, i.e. only cpu is put into sleep, everything else stays alive
+#echo s2idle > /sys/power/mem_sleep
+
+# try to copy the right xorg monitor rotation conf file depending on system at first boot
+# as a result the wrong screen orientation should be corrected after the first reboot on krane
+if [ ! -f /etc/X11/xorg.conf.d/31-monitor-rotate-left.conf ] && [ ! -f /etc/X11/xorg.conf.d/31-monitor.conf ]; then
+  # krane has a rotated panel
+  if $(grep -q 'MediaTek krane' /proc/device-tree/model) || \
+     $(grep -q 'MediaTek kakadu board$' /proc/device-tree/model) || \
+     $(grep -q 'MediaTek katsu board$' /proc/device-tree/model) || \
+     $(grep -q 'MediaTek katsu sku38 board$' /proc/device-tree/model) ; then
+    cp /etc/X11/xorg.conf.d.samples/31-monitor-rotate-left.conf /etc/X11/xorg.conf.d
+    sync
+    reboot
+  # most others do not have a rotated panel
+  else
+    cp /etc/X11/xorg.conf.d.samples/31-monitor.conf /etc/X11/xorg.conf.d
+  fi
+fi
+
+# this is no longer required since v5.18 and a patch added for it
+## lock the gpu devfreq freq scaling to a single fixed freq as it does not seem to work stable
+## resulting in gpu errors like "gpu sched timeout", "AS_ACTIVE bit stuck" or page faults
+## see: https://oftc.irclog.whitequark.org/panfrost/2022-01-09#30513966
+#if [ -f /sys/class/devfreq/13040000.gpu/max_freq ]; then
+#  # for possible values see /sys/class/devfreq/13040000.gpu/available_frequencies
+#  echo 400000000 > /sys/class/devfreq/13040000.gpu/max_freq
+#  echo 400000000 > /sys/class/devfreq/13040000.gpu/min_freq
+#fi
+
+# additions for chromebook_kukui
+
+# enable light supend mode, i.e. only cpu is put into sleep, everything else stays alive
+#echo s2idle > /sys/power/mem_sleep
+
+# try to copy the right xorg monitor rotation conf file depending on system at first boot
+# as a result the wrong screen orientation should be corrected after the first reboot on krane
+if [ ! -f /etc/X11/xorg.conf.d/31-monitor-rotate-left.conf ] && [ ! -f /etc/X11/xorg.conf.d/31-monitor.conf ]; then
+  # krane has a rotated panel
+  if $(grep -q 'MediaTek krane' /proc/device-tree/model) || \
+     $(grep -q 'MediaTek kakadu board$' /proc/device-tree/model) || \
+     $(grep -q 'MediaTek katsu board$' /proc/device-tree/model) || \
+     $(grep -q 'MediaTek katsu sku38 board$' /proc/device-tree/model) ; then
+    cp /etc/X11/xorg.conf.d.samples/31-monitor-rotate-left.conf /etc/X11/xorg.conf.d
+    sync
+    reboot
+  # most others do not have a rotated panel
+  else
+    cp /etc/X11/xorg.conf.d.samples/31-monitor.conf /etc/X11/xorg.conf.d
+  fi
+fi
+
+# this is no longer required since v5.18 and a patch added for it
+## lock the gpu devfreq freq scaling to a single fixed freq as it does not seem to work stable
+## resulting in gpu errors like "gpu sched timeout", "AS_ACTIVE bit stuck" or page faults
+## see: https://oftc.irclog.whitequark.org/panfrost/2022-01-09#30513966
+#if [ -f /sys/class/devfreq/13040000.gpu/max_freq ]; then
+#  # for possible values see /sys/class/devfreq/13040000.gpu/available_frequencies
+#  echo 400000000 > /sys/class/devfreq/13040000.gpu/max_freq
+#  echo 400000000 > /sys/class/devfreq/13040000.gpu/min_freq
+#fi
+
+# load the proper audio modules per system
+# (for all tested systems and the ones with the identical audio setup)
+# the modprobe part should be no longer required with some additional
+# patches in the v6.1 kernels, but lets still leave them here for now
+touch /tmp/no-audio-setup-done
+# some krane, jacuzzi and kodama systems require this audio setup
+if $(grep -q 'MediaTek krane sku0 board$' /proc/device-tree/model) || \
+   $(grep -q 'MediaTek krane sku176 board$' /proc/device-tree/model) || \
+   $(grep -q 'Google burnet board$' /proc/device-tree/model) || \
+   $(grep -q 'Google cozmo board$' /proc/device-tree/model) || \
+   $(grep -q 'Google juniper sku16 board$' /proc/device-tree/model) || \
+   $(grep -q 'Google kappa board$' /proc/device-tree/model) || \
+   $(grep -q 'Google kenzo sku17 board$' /proc/device-tree/model) || \
+   $(grep -q 'Google willow board sku1$' /proc/device-tree/model) || \
+   $(grep -q 'Google fennel sku7 board$' /proc/device-tree/model) || \
+   $(grep -q 'MediaTek kodama sku16 board$' /proc/device-tree/model) || \
+   $(grep -q 'MediaTek kodama sku272 board$' /proc/device-tree/model) || \
+   $(grep -q 'MediaTek kodama sku288 board$' /proc/device-tree/model) || \
+   $(grep -q 'MediaTek kodama sku32 board$' /proc/device-tree/model) ; then
+  modprobe mt8183-mt6358-ts3a227-max98357
+  rm -f /tmp/no-audio-setup-done
+fi
+# some fennel and kakadu systems require this audio setup
+if $(grep -q 'Google fennel sku1 board$' /proc/device-tree/model) || \
+   $(grep -q 'Google fennel sku6 board$' /proc/device-tree/model) || \
+   $(grep -q 'Google fennel14 sku0 board$' /proc/device-tree/model) || \
+   $(grep -q 'MediaTek kakadu board$' /proc/device-tree/model) ; then
+  modprobe mt8183-da7219-max98357
+  alsaucm -n -b - <<EOM
+  open mt8183_da7219_r
+  reset
+  set _verb HiFi
+  set _enadev Speaker
+EOM
+  rm -f /tmp/no-audio-setup-done
+fi
+# some damu and willow systems require this audio setup
+if $(grep -q 'Google damu board$' /proc/device-tree/model) || \
+   $(grep -q 'Google willow board sku0$' /proc/device-tree/model) ; then
+  modprobe mt8183-da7219-max98357
+  alsaucm -n -b - <<EOM
+  open mt8183_da7219_m
+  reset
+  set _verb HiFi
+  set _enadev Speaker
+  set _enadev InternalMic
+EOM
+  rm -f /tmp/no-audio-setup-done
+fi
+

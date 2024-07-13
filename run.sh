@@ -18,7 +18,7 @@ MOUNT_POINT=/compile/local/image-mnt
 
 rm -rf $GIT_DIR $BUILD_ROOT $IMAGE_DIR $MOUNT_POINT
 
-git clone https://github.com/linsyking/imagebuilder.git ${GIT_DIR}
+git clone https://github.com/panbed/imagebuilder ${GIT_DIR}
 mkdir -p ${BUILD_ROOT}
 mkdir -p ${IMAGE_DIR}
 mkdir -p ${MOUNT_POINT}
