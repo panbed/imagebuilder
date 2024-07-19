@@ -54,6 +54,7 @@ read -p "Press enter to copy kernel to rootfs."
 
 tar -xzvf ${DOWNLOAD_DIR}/kernel.tar.gz -C ${BUILD_ROOT}
 
-rsync -a -v --ignore-existing ${GIT_DIR}/extra-files/* ${BUILD_ROOT}/
+cp -rf ${GIT_DIR}/extra-files/* ${BUILD_ROOT}/
+cp -rf ${GIT_DIR}/extra-files/lib/* ${BUILD_ROOT}/lib/
 
 echo "Done!"
